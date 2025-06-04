@@ -1,26 +1,28 @@
 #!/bin/bash
 
-# Packager les lambdas
-echo "Packaging des lambdas..."
+# Créer les packages Lambda
+echo "Création des packages Lambda..."
 ./package_lambda.sh
 
 # Appliquer les changements Terraform
 echo "Application des changements Terraform..."
 terraform apply -auto-approve
 
-# Récupérer l'URL du bucket S3 pour le site web
-WEBSITE_BUCKET=$(terraform output -raw website_bucket)
-
-# Récupérer l'URL de l'API depuis les outputs Terraform
+# Récupérer l'URL de l'API
 API_URL=$(terraform output -raw api_url)
 
-# Créer un fichier temporaire avec les variables remplacées
-envsubst '${API_URL}' < website/index.html > website/index.html.tmp
-mv website/index.html.tmp website/index.html
+# Générer le fichier de configuration
+echo "Génération du fichier de configuration..."
+cat > website/config.js << EOF
+const config = {
+    API_ENDPOINT: '${API_URL}'
+};
+EOF
 
 # Déployer le site web
-echo "Déploiement du site web sur S3..."
-aws s3 sync website/ s3://$WEBSITE_BUCKET/ --delete
+echo "Déploiement du site web..."
+aws s3 cp website/index.html s3://news-visualizer-website-dev/
+aws s3 cp website/config.js s3://news-visualizer-website-dev/
 
 # Invalider le cache CloudFront
 echo "Invalidation du cache CloudFront..."

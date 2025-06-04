@@ -50,9 +50,8 @@
         </div>
     </main>
 
+    <script src="config.js"></script>
     <script>
-        const API_ENDPOINT = 'https://yagyyo49u0.execute-api.eu-west-3.amazonaws.com/dev'; // URL de l'API Gateway
-
         function logToTerminal(message) {
             const terminal = document.getElementById('terminal');
             const terminalContent = document.getElementById('terminal-content');
@@ -71,8 +70,8 @@
             imagesGrid.innerHTML = '';
 
             try {
-                console.log('Envoi de la requête à:', API_ENDPOINT);
-                const response = await fetch(API_ENDPOINT + '/images', {
+                console.log('Envoi de la requête à:', config.API_ENDPOINT);
+                const response = await fetch(config.API_ENDPOINT + '/images', {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json',
@@ -104,7 +103,7 @@
                             <img src="${image.url}" alt="Visualisation d'actualité" class="w-full h-64 object-cover">
                             <div class="p-4">
                                 <h3 class="text-lg font-semibold text-gray-800 mb-2">${image.title}</h3>
-                                <p class="text-sm text-gray-500">
+                                <p class="text-sm text-gray-500 mb-2">
                                     Généré le ${new Date(image.lastModified).toLocaleString('fr-FR', { 
                                         year: 'numeric', 
                                         month: 'long', 
@@ -133,29 +132,36 @@
 
             loading.classList.remove('hidden');
             error.classList.add('hidden');
-            logToTerminal('Démarrage de la génération d\'image...');
+            logToTerminal('=== Démarrage du processus de génération d\'image ===');
+            logToTerminal('1. Préparation de la requête...');
 
             try {
-                logToTerminal('Envoi de la requête à l\'API...');
-                const response = await fetch(API_ENDPOINT + '/generate-image', { method: 'POST' });
+                logToTerminal('2. Envoi de la requête à l\'API...');
+                const response = await fetch(config.API_ENDPOINT + '/generate-image', { method: 'POST' });
+                logToTerminal('3. Réponse reçue de l\'API, traitement en cours...');
                 const data = await response.json();
 
                 if (response.ok) {
-                    logToTerminal('Image générée avec succès !');
+                    logToTerminal('4. Image générée avec succès !');
+                    logToTerminal('5. Mise à jour de l\'interface...');
                     alert('Nouvelle image générée avec succès !');
                     loadImages(); // Recharger les images
+                    logToTerminal('=== Processus terminé avec succès ===');
                 } else {
                     const errorMessage = data.message || 'Erreur inconnue';
-                    logToTerminal('Erreur: ' + errorMessage);
+                    logToTerminal('❌ Erreur lors de la génération: ' + errorMessage);
+                    logToTerminal('Détails techniques: ' + JSON.stringify(data, null, 2));
                     alert('Erreur lors de la génération de l\'image : ' + errorMessage);
                 }
             } catch (err) {
                 error.classList.remove('hidden');
-                logToTerminal('Erreur: ' + err.message);
+                logToTerminal('❌ Erreur critique: ' + err.message);
+                logToTerminal('Stack trace: ' + err.stack);
                 console.error('Erreur:', err);
                 alert('Erreur lors de la génération de l\'image : ' + err.message);
             } finally {
                 loading.classList.add('hidden');
+                logToTerminal('=== Fin du processus ===');
             }
         }
 

@@ -65,12 +65,21 @@ resource "aws_iam_role_policy" "lambda_policy" {
 # S3 Bucket pour les images générées
 resource "aws_s3_bucket" "images_bucket" {
   bucket = "${var.project_name}-images-${var.environment}"
+  force_destroy = false
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 # S3 Bucket pour le site web statique
 resource "aws_s3_bucket" "website_bucket" {
   bucket = "${var.project_name}-website-${var.environment}"
-  force_destroy = true
+  force_destroy = false
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 # Configuration du bucket website pour l'hébergement statique
